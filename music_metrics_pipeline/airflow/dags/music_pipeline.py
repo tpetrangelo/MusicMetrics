@@ -1,10 +1,5 @@
-import sys
-import os
-sys.path.insert(0, "/opt/airflow/MusicMetrics")
-
 from airflow import DAG
 from airflow.operators.python import PythonOperator # type: ignore
-from airflow.operators.bash import BashOperator # type: ignore
 from datetime import datetime, timedelta
 
 from ingestion.call_plays import run as plays_run
