@@ -40,3 +40,6 @@ models:
     marts:
       +schema: gold
       +materialized: table
+
+log-path: /tmp/dbt-logs
+target-path: /tmp/dbt-target
