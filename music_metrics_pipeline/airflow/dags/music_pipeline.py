@@ -13,6 +13,8 @@ from ingestion.clients.openmeteo_client import run as openmeteo_run
 from gcp.ingest.ingest_plays import run as ingest_plays_run
 from gcp.ingest.ingest_weather import run as ingest_weather_run
 
+from dbt.cli.main import dbtRunner, dbtRunnerResult
+
 default_args = {
     "owner": "music_metrics",
     "retries": 1,
@@ -59,6 +61,30 @@ with DAG(
         weather_key = ti.xcom_pull(task_ids="openmeteo_to_s3")
         ingest_weather_run(weather_key=weather_key)
 
+    # ── dbt ───────────────────────────────────────────────────
+
+    def _run_dbt(**context):
+        dbt = dbtRunner()
+        args = [
+            "run",
+            "--project-dir", DBT_PROJECT_DIR,
+            "--profiles-dir", DBT_PROFILES_DIR,
+        ]
+        res: dbtRunnerResult = dbt.invoke(args)
+        if not res.success:
+            raise Exception(f"dbt run failed: {res.exception}")
+
+    def _test_dbt(**context):
+        dbt = dbtRunner()
+        args = [
+            "test",
+            "--project-dir", DBT_PROJECT_DIR,
+            "--profiles-dir", DBT_PROFILES_DIR,
+        ]
+        res: dbtRunnerResult = dbt.invoke(args)
+        if not res.success:
+            raise Exception(f"dbt test failed: {res.exception}")
+
     # ── Operators ─────────────────────────────────────────────
 
     fetch_s3_plays = PythonOperator(
@@ -86,14 +112,14 @@ with DAG(
         python_callable=_ingest_weather_to_bq,
     )
 
-    run_dbt = BashOperator(
+    run_dbt = PythonOperator(
         task_id="run_dbt",
-        bash_command=f"/home/airflow/.local/bin/dbt run --project-dir {DBT_PROJECT_DIR} --profiles-dir {DBT_PROFILES_DIR}",
+        python_callable=_run_dbt,
     )
 
-    test_dbt = BashOperator(
+    test_dbt = PythonOperator(
         task_id="test_dbt",
-        bash_command=f"/home/airflow/.local/bin/dbt test --project-dir {DBT_PROJECT_DIR} --profiles-dir {DBT_PROFILES_DIR}",
+        python_callable=_test_dbt,
     )
 
     # ── Dependencies ──────────────────────────────────────────

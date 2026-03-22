@@ -1,8 +1,8 @@
-awswrangler
 pandas
 requests
 google-cloud-bigquery
-google-cloud-bigquery-storage 
+google-cloud-bigquery-storage
 pandas-gbq
 dbt-bigquery
+dbt-core
 boto3
