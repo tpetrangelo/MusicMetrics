@@ -20,8 +20,8 @@ default_args = {
     "email_on_failure": False,
 }
 
-DBT_PROJECT_DIR = "/home/ubuntu/MusicMetrics/music_metrics_pipeline/dbt/music_metrics"
-DBT_PROFILES_DIR = "/home/ubuntu/.dbt"
+DBT_PROJECT_DIR = "/opt/airflow/MusicMetrics/music_metrics_pipeline/dbt/music_metrics"
+DBT_PROFILES_DIR = "/opt/airflow/MusicMetrics/music_metrics_pipeline/dbt/music_metrics"
 
 with DAG(
     dag_id="music_metrics_pipeline",
@@ -88,12 +88,12 @@ with DAG(
 
     run_dbt = BashOperator(
         task_id="run_dbt",
-        bash_command=f"dbt run --project-dir {DBT_PROJECT_DIR} --profiles-dir {DBT_PROFILES_DIR}",
+        bash_command=f"/home/airflow/.local/bin/dbt run --project-dir {DBT_PROJECT_DIR} --profiles-dir {DBT_PROFILES_DIR}",
     )
 
     test_dbt = BashOperator(
         task_id="test_dbt",
-        bash_command=f"dbt test --project-dir {DBT_PROJECT_DIR} --profiles-dir {DBT_PROFILES_DIR}",
+        bash_command=f"/home/airflow/.local/bin/dbt test --project-dir {DBT_PROJECT_DIR} --profiles-dir {DBT_PROFILES_DIR}",
     )
 
     # ── Dependencies ──────────────────────────────────────────
