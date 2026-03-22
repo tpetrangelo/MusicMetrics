@@ -33,7 +33,8 @@ def ingest_weather(weather_key: str) -> None:
         df=df,
         dataset=BIGQUERY_DATASET_BRONZE,
         table="weather",
-        schema=SCHEMA
+        schema=SCHEMA,
+        write_disposition="WRITE_TRUNCATE"
     )
 
 

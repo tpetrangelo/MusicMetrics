@@ -30,7 +30,8 @@ def ingest_plays(plays_key: str) -> None:
         df=df,
         dataset=BIGQUERY_DATASET_BRONZE,
         table="plays",
-        schema=SCHEMA
+        schema=SCHEMA,
+        write_disposition="WRITE_TRUNCATE"
     )
 
 
