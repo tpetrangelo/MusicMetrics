@@ -1,3 +1,12 @@
+WITH deduped AS (
+    SELECT *,
+        ROW_NUMBER() OVER (
+            PARTITION BY id
+            ORDER BY played_at
+        ) AS rn
+    FROM {{ source('bronze', 'plays') }}
+)
+
 SELECT
     id,
     track_id,
@@ -13,4 +22,5 @@ SELECT
     ROUND(latitude, 1)   AS lat_bucket,
     ROUND(longitude, 1)  AS lon_bucket,
     EXTRACT(HOUR FROM played_at) AS hour
-FROM {{ source('bronze', 'plays') }}
+FROM deduped
+WHERE rn = 1
