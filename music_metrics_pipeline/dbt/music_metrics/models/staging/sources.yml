@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: bronze
+    database: musicmetrics-491013
+    schema: bronze
+    tables:
+      - name: plays
+      - name: weather

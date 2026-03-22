@@ -24,11 +24,11 @@ handler = Mangum(app)
 def write_to_s3(item: Item, source: str):
 
     ts = datetime.now(timezone.utc)
-    ios_plays_key = build_raw_key(AWS_SOURCE, ts, ext="json", play_source = source)
+    plays_key = build_raw_key(AWS_SOURCE, ts, ext="json", play_source = source)
 
     upload_parquet_to_s3(
         bucket=BUCKET,
-        key=ios_plays_key,
+        key=plays_key,
         data=item,
         metadata={"source": AWS_SOURCE},
     )

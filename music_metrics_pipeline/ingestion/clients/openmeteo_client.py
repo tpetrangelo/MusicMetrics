@@ -1,12 +1,11 @@
 import sys
 import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
 import pandas as pd
-import awswrangler as wr
 import requests
 
-from datetime import datetime
+from datetime import datetime, time
 from app.config import AWS_S3_BUCKET, AWS_S3_WEATHER_SOURCE
 from app.utils.consolidate_geo_buckets import bucket_location
 from app.utils.s3_io import read_json_from_s3_file, write_json_to_s3
@@ -15,7 +14,7 @@ BUCKET = AWS_S3_BUCKET
 SOURCE = AWS_S3_WEATHER_SOURCE
 
 
-def results_to_df(results: list[dict]) -> pd.DataFrame:
+def results_to_df(results: list[dict], play_date: str) -> pd.DataFrame:
     rows = []
     for result in results:
         lat = result["lat_bucket"]
@@ -27,6 +26,7 @@ def results_to_df(results: list[dict]) -> pd.DataFrame:
             rows.append({
                 "lat_bucket":          lat,
                 "lon_bucket":          lon,
+                "date":                play_date,
                 "hour":                hour,
                 "time":                hourly["time"][hour],
                 "temperature_f":       hourly["temperature_2m"][hour],
@@ -39,28 +39,35 @@ def results_to_df(results: list[dict]) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 def call_openmeteo(*, lat: float, lon: float, play_date: str) -> dict:
-    response = requests.get(
-        "https://historical-forecast-api.open-meteo.com/v1/forecast",
-        params={
-            "latitude":           lat,
-            "longitude":          lon,
-            "start_date":         play_date,
-            "end_date":           play_date,
-            "hourly":             "temperature_2m,precipitation,apparent_temperature,weather_code,wind_speed_10m",
-            "temperature_unit":   "fahrenheit",
-            "wind_speed_unit":    "mph",
-            "precipitation_unit": "inch",
-        },
-        timeout=10
-    )
-    return response.json()
+    for attempt in range(3):
+        try:
+            response = requests.get(
+                "https://historical-forecast-api.open-meteo.com/v1/forecast",
+                params={
+                    "latitude":           lat,
+                    "longitude":          lon,
+                    "start_date":         play_date,
+                    "end_date":           play_date,
+                    "hourly":             "temperature_2m,precipitation,apparent_temperature,weather_code,wind_speed_10m",
+                    "temperature_unit":   "fahrenheit",
+                    "wind_speed_unit":    "mph",
+                    "precipitation_unit": "inch",
+                },
+                timeout=30
+            )
+            return response.json()
+        except requests.exceptions.Timeout:
+            print(f"[OpenMeteo] Timeout attempt {attempt + 1}/3 for {lat},{lon}")
+            if attempt < 2:
+                time.sleep(5)
+    raise RuntimeError(f"OpenMeteo failed after 3 attempts for {lat},{lon}")
     
 
 
 def get_openmeteo_weather(*, geobuckets_key: str, play_date: str):
 
     prior_day = datetime.strptime(play_date, "%Y-%m-%d").date()  
-    df = read_json_from_s3_file(geobuckets_key)   #wr.s3.read_json(path=geobuckets_key, dataset = True, orient="records")
+    df = read_json_from_s3_file(geobuckets_key)
 
     geobucket_df = df.copy()
     
@@ -81,9 +88,9 @@ def get_openmeteo_weather(*, geobuckets_key: str, play_date: str):
             "hourly":     data["hourly"]
         })
 
-    weather_df = results_to_df(results=results)
+    weather_df = results_to_df(results=results, play_date = play_date)
 
-    openmeteo_s3_path = f"s3://{BUCKET}/bronze/{SOURCE}/dt={prior_day}"
+    openmeteo_s3_path = f"s3://{BUCKET}/bronze/{SOURCE}/dt={prior_day}.json"
     
     write_json_to_s3(weather_df.to_dict(orient="records"),openmeteo_s3_path)
     
