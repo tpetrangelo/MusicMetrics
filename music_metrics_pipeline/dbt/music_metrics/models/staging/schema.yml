@@ -1,0 +1,43 @@
+version: 2
+
+models:
+  - name: stg_plays
+    description: Staged play events from bronze
+    columns:
+      - name: id
+        tests:
+          - not_null
+          - unique
+      - name: track_id
+        tests:
+          - not_null
+      - name: track_name
+        tests:
+          - not_null
+      - name: artist_name
+        tests:
+          - not_null
+      - name: played_at
+        tests:
+          - not_null
+      - name: source
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['ios', 'lastfm']
+
+  - name: stg_weather
+    description: Staged hourly weather data from bronze
+    columns:
+      - name: lat_bucket
+        tests:
+          - not_null
+      - name: lon_bucket
+        tests:
+          - not_null
+      - name: hour
+        tests:
+          - not_null
+      - name: weather_date
+        tests:
+          - not_null

@@ -1,0 +1,33 @@
+version: 2
+
+models:
+  - name: mart_plays_by_artist
+    columns:
+      - name: artist_name
+        tests:
+          - not_null
+          - unique
+
+  - name: mart_plays_by_location
+    columns:
+      - name: lat_bucket
+        tests:
+          - not_null
+      - name: lon_bucket
+        tests:
+          - not_null
+
+  - name: mart_plays_by_weather
+    columns:
+      - name: weather_category
+        tests:
+          - not_null
+
+  - name: mart_new_album_rotation
+    columns:
+      - name: artist_name
+        tests:
+          - not_null
+      - name: album_name
+        tests:
+          - not_null

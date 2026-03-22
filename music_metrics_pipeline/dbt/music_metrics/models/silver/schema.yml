@@ -1,0 +1,19 @@
+version: 2
+
+models:
+  - name: silver_plays_enriched
+    description: Play events joined with weather and weather codes
+    columns:
+      - name: id
+        tests:
+          - not_null
+          - unique
+      - name: track_name
+        tests:
+          - not_null
+      - name: artist_name
+        tests:
+          - not_null
+      - name: played_at
+        tests:
+          - not_null
