@@ -1,7 +1,7 @@
 SELECT
     lat_bucket,
     lon_bucket,
-    DATE(date)      AS date,
+    DATE(date)      AS weather_date,
     hour,
     time,
     temperature_f,
