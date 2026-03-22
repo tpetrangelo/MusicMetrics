@@ -7,7 +7,7 @@ from app.utils.s3_keys import build_raw_key
 from app.utils.s3_io import upload_parquet_to_s3  
 from app.models import Item
 
-from mangum import Mangum
+from mangum import Mangum # type: ignore
 
 import logging
 
@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 BUCKET = AWS_S3_BUCKET
-SOURCE = AWS_S3_PLAYS_SOURCE
+AWS_SOURCE = AWS_S3_PLAYS_SOURCE
 
     
 app = FastAPI()
@@ -24,13 +24,13 @@ handler = Mangum(app)
 def write_to_s3(item: Item, source: str):
 
     ts = datetime.now(timezone.utc)
-    ios_plays_key = build_raw_key(SOURCE, ts, ext="json")
+    ios_plays_key = build_raw_key(AWS_SOURCE, ts, ext="json", play_source = source)
 
     upload_parquet_to_s3(
         bucket=BUCKET,
         key=ios_plays_key,
         data=item,
-        metadata={"source": SOURCE},
+        metadata={"source": AWS_SOURCE},
     )
 
 

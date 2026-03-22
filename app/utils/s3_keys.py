@@ -7,6 +7,7 @@ def build_raw_key(
     *,
     include_minute: bool = True,
     ext: str = "json",
+    play_source
 ) -> str:
     
     if ts is None:
@@ -21,6 +22,7 @@ def build_raw_key(
     parts = [f"bronze/{source}"]
 
     parts.append(f"dt={ts:%Y-%m-%d}")
+    parts.append(play_source)
     parts.append(f"hr={ts:%H}")
 
     if include_minute:

@@ -1,10 +1,11 @@
 from __future__ import annotations
-
+import pandas as pd
 
 # ============================
 # Standard library imports
 # ============================
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 import os
 import sys
 
@@ -32,9 +33,9 @@ if PROJECT_PATH not in sys.path:
 # Local project imports
 # ============================
 
-from s3_calls.call_plays import run as plays_run
+from ingestion.call_plays import run as plays_run
 from ingestion.clients.openmeteo_client import run as openmeteo_run
-
+from ingestion.geo_buckets import run as geobuckets_run
 
 # ============================
 # DAG defaults
@@ -42,7 +43,7 @@ from ingestion.clients.openmeteo_client import run as openmeteo_run
 default_args = {
     "owner": "you",
     "retries": 2,
-    "retry_delay": timedelta(minutes=5),
+    "retry_delay": timedelta(minutes=2),
 }
 
 
@@ -53,45 +54,47 @@ with DAG(
     dag_id="ingest_plays_openmeteo_bigquery",
     default_args=default_args,
     start_date=datetime(2026, 1, 1),
-    schedule="0 */6 * * *",
+    schedule="0 5 * * *",
     catchup=False,
     tags=["bronze", "processed", "bigquery", "dbt"],
 ) as dag:
 
-    # -----------------
-    # S3 ingestion callables
-    # -----------------
+
     def _s3_plays(**context) -> str:
-        return plays_run()
+        date = context["ds"]
+        return plays_run(date)
+
+    def _geobuckets_to_s3(ti, **context) -> str:
+        date = context["ds"]
+        plays_key = ti.xcom_pull(task_ids="fetch_s3_plays")
+        return geobuckets_run(plays_key=plays_key, play_date=date)
 
     def _openmeteo_to_s3(ti, **context) -> str:
-        airports_key = ti.xcom_pull(task_ids="airports_to_s3")
-        return openweather_run(airports_s3_key=airports_key)
+        date = context["ds"]
+        geobuckets_key = ti.xcom_pull(task_ids="make_geobuckets")
+        return openmeteo_run(geobuckets_key=geobuckets_key, play_date=date)
 
-    # -----------------
-    # S3 ingestion tasks
-    # -----------------
-    adb_to_s3 = PythonOperator(
-        task_id="adb_to_s3",
-        python_callable=_adb_to_s3,
+
+    fetch_s3_plays = PythonOperator(
+        task_id="fetch_s3_plays",
+        python_callable=_s3_plays,
+    )
+    
+    make_geobuckets = PythonOperator(
+        task_id = "geobuckets_to_s3",
+        python_callable = _geobuckets_to_s3
     )
 
-    airports_to_s3 = PythonOperator(
-        task_id="airports_to_s3",
-        python_callable=_airports_to_s3,
+    openmeteo_to_s3 = PythonOperator(
+        task_id="openmeteo_to_s3",
+        python_callable=_openmeteo_to_s3,
     )
-
-    openweather_to_s3 = PythonOperator(
-        task_id="openweather_to_s3",
-        python_callable=_openweather_to_s3,
-    )
-
     
     # -----------------
     # dbt tasks
     # -----------------
 
-    DBT_PROJECT_DIR = "/opt/airflow/project/dbt/flight_weather_dbt"
+    DBT_PROJECT_DIR = "/opt/airflow/project/dbt/play_weather_dbt"
     DBT_PROFILES_DIR = "/opt/airflow/dbt_profiles"
 
     dbt_build_silver = BashOperator(
@@ -131,5 +134,4 @@ with DAG(
     # -----------------
     # Dependencies
     # -----------------
-    adb_to_s3 >> airports_to_s3 >> openweather_to_s3
-    openweather_to_s3 >> dbt_build_silver >> dbt_test_freshness >> dbt_build_gold
+    fetch_s3_plays >> make_geobuckets >> openmeteo_to_s3 #>> dbt_build_silver >> dbt_test_freshness >> dbt_build_gold
