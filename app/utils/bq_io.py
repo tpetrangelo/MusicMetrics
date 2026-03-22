@@ -4,13 +4,16 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 
 from google.cloud import bigquery
 from google.oauth2 import service_account
-from app.config import GOOGLE_APPLICATION_CREDENTIALS, BIGQUERY_PROJECT
+from google.oauth2 import service_account
+from app.utils.secrets import get_gcp_credentials
+from app.config import BIGQUERY_PROJECT
 
 import pandas as pd
 
 def get_bq_client() -> bigquery.Client:
-    credentials = service_account.Credentials.from_service_account_file(
-        GOOGLE_APPLICATION_CREDENTIALS,
+    credentials_dict = get_gcp_credentials()
+    credentials = service_account.Credentials.from_service_account_info(
+        credentials_dict,
         scopes=["https://www.googleapis.com/auth/bigquery"]
     )
     return bigquery.Client(project=BIGQUERY_PROJECT, credentials=credentials)
