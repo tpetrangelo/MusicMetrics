@@ -45,6 +45,6 @@ LEFT JOIN {{ ref('stg_weather') }} w
     ON  p.lat_bucket = w.lat_bucket
     AND p.lon_bucket = w.lon_bucket
     AND p.hour       = w.hour
-    AND DATE(p.played_at) = w.date
+    AND DATE(p.played_at) = w.weather_date
 LEFT JOIN {{ ref('weather_codes') }} wc
     ON w.weather_code = wc.weather_code
