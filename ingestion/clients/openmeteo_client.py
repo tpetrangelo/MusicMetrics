@@ -10,11 +10,13 @@ from app.config import AWS_S3_BUCKET, AWS_S3_WEATHER_SOURCE
 from app.utils.consolidate_geo_buckets import bucket_location
 from app.utils.s3_io import read_json_from_s3_file, write_json_to_s3
 
+from typing import List, Dict
+
 BUCKET = AWS_S3_BUCKET
 SOURCE = AWS_S3_WEATHER_SOURCE
 
 
-def results_to_df(results: list[dict], play_date: str) -> pd.DataFrame:
+def results_to_df(results: List[Dict], play_date: str) -> pd.DataFrame:
     rows = []
     for result in results:
         lat = result["lat_bucket"]
