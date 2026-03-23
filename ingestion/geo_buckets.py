@@ -1,7 +1,3 @@
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-
 from datetime import datetime
 from app.config import AWS_S3_BUCKET, AWS_S3_GEOBUCKET_SOURCE
 from app.utils.consolidate_geo_buckets import bucket_location_time
