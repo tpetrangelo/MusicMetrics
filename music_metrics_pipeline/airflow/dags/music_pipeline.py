@@ -19,7 +19,7 @@ default_args = {
     "owner": "music_metrics",
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
-    "email_on_failure": False,
+    "on_failure_callback": on_failure,
 }
 
 DBT_PROJECT_DIR = "/opt/airflow/MusicMetrics/music_metrics_pipeline/dbt/music_metrics"
@@ -29,7 +29,6 @@ with DAG(
     dag_id="music_metrics_pipeline",
     description="Daily music play ingestion, weather enrichment, and dbt transformation",
     schedule_interval="0 5 * * *",
-    on_failure_callback = on_failure,
     on_success_callback = on_success,
     start_date=datetime(2026, 1, 1),
     catchup=False,
