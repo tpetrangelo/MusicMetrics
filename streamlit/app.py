@@ -266,6 +266,7 @@ with col3:
         color_continuous_scale=[[0, "#1a2a0a"], [1, ACCENT]],
         size_max=30,
         zoom=9,
+        center={"lat": df_loc["lat"].mean(), "lon": df_loc["lon"].mean()},
         mapbox_style="carto-darkmatter",
     )
     fig3.update_layout(
