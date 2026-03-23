@@ -29,7 +29,6 @@ with DAG(
     dag_id="music_metrics_pipeline",
     description="Daily music play ingestion, weather enrichment, and dbt transformation",
     schedule_interval="0 5 * * *",
-    on_success_callback = on_success,
     start_date=datetime(2026, 1, 1),
     catchup=False,
     default_args=default_args,
@@ -121,6 +120,7 @@ with DAG(
     test_dbt = PythonOperator(
         task_id="test_dbt",
         python_callable=_test_dbt,
+        on_success_callback=on_success,
     )
 
     # ── Dependencies ──────────────────────────────────────────
