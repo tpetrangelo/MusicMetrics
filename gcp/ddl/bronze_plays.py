@@ -1,7 +1,3 @@
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-
 from google.cloud import bigquery
 from app.utils.bq_io import get_bq_client
 from app.config import BIGQUERY_PROJECT, BIGQUERY_DATASET_BRONZE

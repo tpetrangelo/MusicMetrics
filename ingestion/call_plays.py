@@ -1,11 +1,5 @@
-
 import pandas as pd
-from datetime import date, datetime
-
-
-import sys
-import os
-sys.path.insert(0, '/workspaces/MusicMetrics')
+from datetime import datetime
 
 from app.config import AWS_S3_BUCKET, AWS_S3_PLAYS_SOURCE
 

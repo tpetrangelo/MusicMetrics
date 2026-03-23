@@ -10,9 +10,8 @@ from gcp.ingest.ingest_weather import run as ingest_weather_run
 
 from dbt.cli.main import dbtRunner, dbtRunnerResult
 
-from app.config import AWS_SES_REGION, AWS_SES_FROM_EMAIL, AWS_SES_TO_EMAIL
+from app.utils.callbacks import on_failure, on_success
 
-import boto3
 from airflow import DAG
 from datetime import datetime
 
@@ -25,45 +24,6 @@ default_args = {
 
 DBT_PROJECT_DIR = "/opt/airflow/MusicMetrics/music_metrics_pipeline/dbt/music_metrics"
 DBT_PROFILES_DIR = "/opt/airflow/MusicMetrics/music_metrics_pipeline/dbt/music_metrics"
-
-SES_REGION = AWS_SES_REGION
-FROM_EMAIL = AWS_SES_FROM_EMAIL
-TO_EMAIL   = AWS_SES_TO_EMAIL
-
-def send_email(subject, body):
-    client = boto3.client("ses", region_name=SES_REGION)
-    client.send_email(
-        Source=FROM_EMAIL,
-        Destination={"ToAddresses": [TO_EMAIL]},
-        Message={
-            "Subject": {"Data": subject},
-            "Body":    {"Text": {"Data": body}},
-        },
-    )
-
-def on_failure(context):
-    dag_id   = context["dag"].dag_id
-    task_id  = context["task_instance"].task_id
-    log_url  = context["task_instance"].log_url
-    exc      = context.get("exception", "No exception info")
-    send_email(
-        subject=f"DAG failed: {dag_id}",
-        body=f"Task:      {task_id}\nError:     {exc}\nLogs:      {log_url}",
-    )
-
-def on_success(context):
-    dag_id   = context["dag"].dag_id
-    run_id   = context["run_id"]
-    duration = context["dag_run"].end_date - context["dag_run"].start_date
-    send_email(
-        subject=f"DAG succeeded: {dag_id}",
-        body=(
-            f"Run ID:    {run_id}\n"
-            f"Duration:  {duration}\n"
-            f"Finished:  {datetime.utcnow()} UTC\n\n"
-            f"Gold tables loaded successfully."
-        ),
-    )
 
 with DAG(
     dag_id="music_metrics_pipeline",

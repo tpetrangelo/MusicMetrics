@@ -1,7 +1,3 @@
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-
 import pandas as pd
 from app.utils.bq_io import load_df_to_bq
 from app.utils.s3_io import read_json_from_s3_prefix
