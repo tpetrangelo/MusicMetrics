@@ -1,10 +1,13 @@
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-
-from app.utils.bq_io import get_bq_client
-from app.config import BIGQUERY_PROJECT
+from google.cloud import bigquery
+from google.oauth2 import service_account
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -35,39 +38,6 @@ h1, h2, h3 {
     max-width: 1200px;
 }
 
-.metric-card {
-    background: #111;
-    border: 1px solid #222;
-    border-radius: 4px;
-    padding: 1.2rem 1.5rem;
-}
-
-.metric-value {
-    font-family: 'Syne', sans-serif;
-    font-size: 2.2rem;
-    font-weight: 800;
-    color: #c8f060;
-    line-height: 1;
-}
-
-.metric-label {
-    font-size: 0.7rem;
-    color: #666;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-top: 0.3rem;
-}
-
-.section-label {
-    font-size: 0.65rem;
-    color: #555;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    margin-bottom: 0.75rem;
-    border-bottom: 1px solid #1a1a1a;
-    padding-bottom: 0.5rem;
-}
-
 div[data-testid="stMetric"] {
     background: #111;
     border: 1px solid #1e1e1e;
@@ -87,11 +57,14 @@ div[data-testid="stMetricLabel"] {
     letter-spacing: 0.08em;
 }
 
-.stSelectbox label, .stMultiSelect label {
-    color: #555 !important;
-    font-size: 0.7rem !important;
+.section-label {
+    font-size: 0.65rem;
+    color: #555;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid #1a1a1a;
+    padding-bottom: 0.5rem;
 }
 
 footer {visibility: hidden;}
@@ -100,11 +73,22 @@ header {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
+# ── BQ client ─────────────────────────────────────────────────────────────────
+def get_bq_client():
+    credentials = service_account.Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"],
+        scopes=["https://www.googleapis.com/auth/cloud-platform"],
+    )
+    return bigquery.Client(
+        credentials=credentials,
+        project=st.secrets["BIGQUERY_PROJECT"],
+    )
+
 # ── Data loading ──────────────────────────────────────────────────────────────
 @st.cache_data(ttl=300)
 def load_data():
     client = get_bq_client()
-    p = BIGQUERY_PROJECT
+    p = st.secrets["BIGQUERY_PROJECT"]
 
     artists = client.query(f"""
         SELECT * FROM `{p}.gold.mart_plays_by_artist`
@@ -188,10 +172,10 @@ total_artists = len(artists)
 total_tracks  = len(enriched["track_name"].unique()) if len(enriched) > 0 else 0
 
 c1, c2, c3, c4 = st.columns(4)
-c1.metric("Total Plays",    total_plays)
+c1.metric("Total Plays",      total_plays)
 c2.metric("Minutes Listened", f"{total_minutes:,.0f}")
-c3.metric("Artists",        total_artists)
-c4.metric("Unique Tracks",  total_tracks)
+c3.metric("Artists",          total_artists)
+c4.metric("Unique Tracks",    total_tracks)
 
 st.markdown("<div style='height: 2rem'></div>", unsafe_allow_html=True)
 
@@ -232,11 +216,11 @@ with col2:
     df_w["play_count"] = df_w["play_count"].astype(int)
 
     colors = {
-        "Clear": ACCENT,
-        "Cloudy": ACCENT2,
-        "Rain": ACCENT3,
-        "Snow": "#f0e060",
-        "Fog": "#888",
+        "Clear":        ACCENT,
+        "Cloudy":       ACCENT2,
+        "Rain":         ACCENT3,
+        "Snow":         "#f0e060",
+        "Fog":          "#888",
         "Thunderstorm": "#f06060",
     }
     df_w["color"] = df_w["weather_category"].map(colors).fillna("#444")
@@ -253,9 +237,10 @@ with col2:
     layout2 = base_layout()
     layout2["height"] = 380
     layout2["annotations"] = [dict(
-        text=f"<b>{int(df_w['play_count'].sum())}</b><br><span style='font-size:10px'>plays</span>",
-        x=0.5, y=0.5, font=dict(family="Syne", size=18, color="#e8e8e8"),
-        showarrow=False
+        text=f"<b>{int(df_w['play_count'].sum())}</b><br>plays",
+        x=0.5, y=0.5,
+        font=dict(family="Syne", size=18, color="#e8e8e8"),
+        showarrow=False,
     )]
     fig2.update_layout(**layout2)
     st.plotly_chart(fig2, use_container_width=True, config={"displayModeBar": False})
@@ -380,7 +365,7 @@ layout6["xaxis"]["showgrid"] = False
 fig6.update_layout(**layout6)
 st.plotly_chart(fig6, use_container_width=True, config={"displayModeBar": False})
 
-# ── Row 4: Recent plays table ─────────────────────────────────────────────────
+# ── Row 4: Recent plays ───────────────────────────────────────────────────────
 st.markdown("<div style='height: 1rem'></div>", unsafe_allow_html=True)
 st.markdown('<div class="section-label">Recent Plays</div>', unsafe_allow_html=True)
 
@@ -388,11 +373,7 @@ if len(enriched) > 0:
     df_recent = enriched.head(20)[["played_at", "track_name", "artist_name", "album_name", "temperature_f", "weather_description", "time_of_day"]].copy()
     df_recent["played_at"] = pd.to_datetime(df_recent["played_at"]).dt.strftime("%b %d, %Y %H:%M")
     df_recent.columns = ["Played At", "Track", "Artist", "Album", "Temp (F)", "Weather", "Time of Day"]
-    st.dataframe(
-        df_recent,
-        use_container_width=True,
-        hide_index=True,
-    )
+    st.dataframe(df_recent, use_container_width=True, hide_index=True)
 else:
     st.info("No play data available yet.")
 

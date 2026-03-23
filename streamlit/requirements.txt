@@ -4,3 +4,4 @@ pandas
 google-cloud-bigquery
 google-cloud-bigquery-storage
 pyarrow
+google-auth
