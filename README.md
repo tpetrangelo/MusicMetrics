@@ -2,6 +2,8 @@
 
 A personal music analytics pipeline that captures Apple Music listening history enriched with GPS location and real-time weather data. Every play event — track, artist, album, coordinates, and atmospheric conditions — is ingested, stored, transformed, and made available for analysis.
 
+Link to MusicMetrics dashboard [MusicMetrics](https://pages.github.com/https://musicmetrics-i6fxmgvgvbxwf4bxl3fspn.streamlit.app/).
+
 ---
 
 ## Architecture
@@ -194,6 +196,17 @@ GCP service account credentials are stored in AWS Secrets Manager and retrieved 
 
 ---
 
+## Notifications
+
+The pipeline sends automated email notifications via AWS SES on every DAG run.
+
+- **Success**: Fires when `test_dbt` completes, includes gold table row counts and run duration
+- **Failure**: Fires on any task failure, includes the failed task name, error message, and Airflow log URL
+
+Every run is also logged to `gold.dag_run_log` in BigQuery for run history and debugging.
+
+---
+
 ## Setup
 
 ### Prerequisites
@@ -286,6 +299,9 @@ MusicMetrics/
           marts/
         seeds/
           weather_codes.csv
+  streamlit/
+    app.py
+    requirements.txt
   setup.py
   deploy.sh
 ```
