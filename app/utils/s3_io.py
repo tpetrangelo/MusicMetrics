@@ -8,7 +8,11 @@ import pandas as pd
 
 from app.config import AWS_S3_BUCKET
 
-BUCKET = AWS_S3_BUCKET
+if not AWS_S3_BUCKET:
+    raise RuntimeError("AWS_S3_BUCKET not set")
+else:
+    BUCKET = AWS_S3_BUCKET    
+
 
 @dataclass(frozen=True)
 class S3Location:

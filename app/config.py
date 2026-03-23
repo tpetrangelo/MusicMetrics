@@ -19,27 +19,3 @@ BIGQUERY_PROJECT = os.getenv("BIGQUERY_PROJECT")
 BIGQUERY_DATASET_BRONZE = os.getenv("BIGQUERY_DATASET_BRONZE")
 BIGQUERY_DATASET_SILVER = os.getenv("BIGQUERY_DATASET_SILVER")
 BIGQUERY_DATASET_GOLD = os.getenv("BIGQUERY_DATASET_GOLD")
-
-if not AWS_S3_BUCKET:
-    raise RuntimeError("AWS_S3_BUCKET not set")
-
-if not AWS_S3_PLAYS_SOURCE:
-    raise RuntimeError("AWS_S3_PLAYS_SOURCE not set")
-
-if not AWS_S3_GEOBUCKET_SOURCE:
-    raise RuntimeError("AWS_S3_GEOBUCKET_SOURCE not set")
-
-if not AWS_S3_WEATHER_SOURCE:
-    raise RuntimeError("AWS_S3_WEATHER_SOURCE not set")
-
-if not AWS_SES_REGION:
-    raise RuntimeError("AWS_SES_REGION not set")
-
-if not AWS_SES_FROM_EMAIL:
-    raise RuntimeError("AWS_SES_FROM_EMAIL not set")
-
-if not AWS_SES_TO_EMAIL:
-    raise RuntimeError("AWS_SES_TO_EMAIL not set")
-
-if not BIGQUERY_PROJECT:
-    raise RuntimeError("BIGQUERY_PROJECT not set")

@@ -8,7 +8,25 @@ from app.config import (
     AWS_SES_FROM_EMAIL,
     AWS_SES_TO_EMAIL,
 )
+
 from app.utils.bq_io import get_bq_client
+
+if not BIGQUERY_PROJECT:
+    raise RuntimeError("BIGQUERY_PROJECT not set")
+
+if not BIGQUERY_DATASET_GOLD:
+    raise RuntimeError("BIGQUERY_DATASET_GOLD not set")
+
+if not AWS_SES_REGION:
+    raise RuntimeError("AWS_SES_REGION not set")
+
+if not AWS_SES_FROM_EMAIL:
+    raise RuntimeError("AWS_SES_FROM_EMAIL not set")
+
+if not AWS_SES_TO_EMAIL:
+    raise RuntimeError("AWS_SES_TO_EMAIL not set")
+
+
 
 LOG_TABLE = "dag_run_log"
 

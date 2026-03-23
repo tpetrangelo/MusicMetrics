@@ -14,8 +14,15 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-BUCKET = AWS_S3_BUCKET
-AWS_SOURCE = AWS_S3_PLAYS_SOURCE
+if not AWS_S3_BUCKET:
+    raise RuntimeError("AWS_S3_BUCKET not set")
+else:
+    BUCKET = AWS_S3_BUCKET    
+
+if not AWS_S3_PLAYS_SOURCE:
+    raise RuntimeError("AWS_S3_PLAYS_SOURCE not set")
+else:
+    AWS_SOURCE = AWS_S3_PLAYS_SOURCE
 
     
 app = FastAPI()

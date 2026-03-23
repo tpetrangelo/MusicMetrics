@@ -3,8 +3,16 @@ from app.config import AWS_S3_BUCKET, AWS_S3_GEOBUCKET_SOURCE
 from app.utils.consolidate_geo_buckets import bucket_location_time
 from app.utils.s3_io import read_json_from_s3_prefix, write_json_to_s3
 
-BUCKET = AWS_S3_BUCKET
-SOURCE = AWS_S3_GEOBUCKET_SOURCE
+if not AWS_S3_BUCKET:
+    raise RuntimeError("AWS_S3_BUCKET not set")
+else:
+    BUCKET = AWS_S3_BUCKET    
+
+if not AWS_S3_GEOBUCKET_SOURCE:
+    raise RuntimeError("AWS_S3_GEOBUCKET_SOURCE not set")
+else:
+    AWS_SOURCE = AWS_S3_GEOBUCKET_SOURCE
+
 
 def make_geobuckets(*, plays_key: str, play_date: str) -> str:
 
@@ -17,7 +25,7 @@ def make_geobuckets(*, plays_key: str, play_date: str) -> str:
 
     consolidated_geobucket_df = bucket_location_time(geobucket_df)
 
-    geobucket_s3_path = f"s3://{BUCKET}/processed/{SOURCE}/dt={prior_day}.json"
+    geobucket_s3_path = f"s3://{BUCKET}/processed/{AWS_SOURCE}/dt={prior_day}.json"
 
     write_json_to_s3(consolidated_geobucket_df.to_dict(orient="records"), geobucket_s3_path)
     

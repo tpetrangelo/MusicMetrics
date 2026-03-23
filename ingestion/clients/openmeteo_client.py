@@ -8,8 +8,16 @@ from app.utils.s3_io import read_json_from_s3_file, write_json_to_s3
 
 from typing import List, Dict
 
-BUCKET = AWS_S3_BUCKET
-SOURCE = AWS_S3_WEATHER_SOURCE
+
+if not AWS_S3_BUCKET:
+    raise RuntimeError("AWS_S3_BUCKET not set")
+else:
+    BUCKET = AWS_S3_BUCKET    
+
+if not AWS_S3_WEATHER_SOURCE:
+    raise RuntimeError("AWS_S3_WEATHER_SOURCE not set")
+else:
+    AWS_SOURCE = AWS_S3_WEATHER_SOURCE
 
 
 def results_to_df(results: List[Dict], play_date: str) -> pd.DataFrame:
@@ -88,7 +96,7 @@ def get_openmeteo_weather(*, geobuckets_key: str, play_date: str):
 
     weather_df = results_to_df(results=results, play_date = play_date)
 
-    openmeteo_s3_path = f"s3://{BUCKET}/bronze/{SOURCE}/dt={prior_day}.json"
+    openmeteo_s3_path = f"s3://{BUCKET}/bronze/{AWS_SOURCE}/dt={prior_day}.json"
     
     write_json_to_s3(weather_df.to_dict(orient="records"),openmeteo_s3_path)
     

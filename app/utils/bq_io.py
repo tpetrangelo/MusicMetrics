@@ -6,6 +6,9 @@ from app.config import BIGQUERY_PROJECT
 
 import pandas as pd
 
+if not BIGQUERY_PROJECT:
+    raise RuntimeError("BIGQUERY_PROJECT not set")
+
 def get_bq_client() -> bigquery.Client:
     credentials_dict = get_gcp_credentials()
     credentials = service_account.Credentials.from_service_account_info(
