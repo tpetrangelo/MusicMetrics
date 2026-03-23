@@ -371,7 +371,7 @@ st.markdown('<div class="section-label">Recent Plays</div>', unsafe_allow_html=T
 
 if len(enriched) > 0:
     df_recent = enriched.head(20)[["played_at", "track_name", "artist_name", "album_name", "temperature_f", "weather_description", "time_of_day"]].copy()
-    df_recent["played_at"] = pd.to_datetime(df_recent["played_at"]).dt.strftime("%b %d, %Y %H:%M")
+    df_recent["played_at"] = pd.to_datetime(df_recent["played_at"]).dt.tz_localize("UTC").dt.tz_convert("America/New_York").dt.strftime("%b %d, %Y %H:%M")
     df_recent.columns = ["Played At", "Track", "Artist", "Album", "Temp (F)", "Weather", "Time of Day"]
     st.dataframe(df_recent, use_container_width=True, hide_index=True)
 else:
