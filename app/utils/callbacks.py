@@ -117,7 +117,6 @@ def on_failure(context) -> None:
 
 
 def on_success(context) -> None:
-    print("[DEBUG] on_success callback fired")
     dag_id   = context["dag"].dag_id
     run_id   = context["run_id"]
     end_date = context["dag_run"].end_date
@@ -126,29 +125,19 @@ def on_success(context) -> None:
 
     try:
         counts = _get_row_counts()
-        print(f"[DEBUG] row counts: {counts}")
     except Exception as e:
-        print(f"[DEBUG] _get_row_counts failed: {e}")
         counts = {"error": str(e)}
 
-    try:
-        _write_log(dag_id=dag_id, run_id=run_id, status="success", row_counts=counts)
-        print("[DEBUG] _write_log succeeded")
-    except Exception as e:
-        print(f"[DEBUG] _write_log failed: {e}")
+    _write_log(dag_id=dag_id, run_id=run_id, status="success", row_counts=counts)
 
-    try:
-        counts_str = "\n".join(
-            f"  {tbl:<35} {n:>8} rows" for tbl, n in counts.items()
-        )
-        body = (
-            f"DAG:       {dag_id}\n"
-            f"Run ID:    {run_id}\n"
-            f"Duration:  {duration}\n"
-            f"Finished:  {datetime.utcnow()} UTC\n\n"
-            f"Gold table row counts:\n{counts_str}\n"
-        )
-        _send_email(subject=f"DAG succeeded: {dag_id}", body=body)
-        print("[DEBUG] _send_email succeeded")
-    except Exception as e:
-        print(f"[DEBUG] _send_email failed: {e}")
+    counts_str = "\n".join(
+        f"  {tbl:<35} {n:>8} rows" for tbl, n in counts.items()
+    )
+    body = (
+        f"DAG:       {dag_id}\n"
+        f"Run ID:    {run_id}\n"
+        f"Duration:  {duration}\n"
+        f"Finished:  {datetime.utcnow()} UTC\n\n"
+        f"Gold table row counts:\n{counts_str}\n"
+    )
+    _send_email(subject=f"DAG succeeded: {dag_id}", body=body)
