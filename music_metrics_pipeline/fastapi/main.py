@@ -29,15 +29,12 @@ app = FastAPI()
 handler = Mangum(app)
 
 def write_to_s3(item: Item, source: str):
-
     ts = datetime.now(timezone.utc)
-    plays_key = build_raw_key(AWS_SOURCE, ts, ext="json", play_source = source)
-
+    plays_key = build_raw_key(AWS_S3_PLAYS_SOURCE, ts, ext="json", play_source=source)
+    s3_path = f"s3://{AWS_S3_BUCKET}/{plays_key}"
     write_json_to_s3(
-        bucket=BUCKET,
-        key=plays_key,
-        data=item,
-        metadata={"source": AWS_SOURCE},
+        data=[item.model_dump()],
+        s3_path=s3_path,
     )
 
 
