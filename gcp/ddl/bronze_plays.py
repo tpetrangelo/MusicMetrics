@@ -2,6 +2,12 @@ from google.cloud import bigquery
 from app.utils.bq_io import get_bq_client
 from app.config import BIGQUERY_PROJECT, BIGQUERY_DATASET_BRONZE
 
+if not BIGQUERY_PROJECT:
+    raise RuntimeError("BIGQUERY_PROJECT not set")
+
+if not BIGQUERY_DATASET_BRONZE:
+    raise RuntimeError("BIGQUERY_DATASET_BRONZE not set")
+
 SCHEMA = [
     bigquery.SchemaField("id",           "STRING",    mode="REQUIRED"),
     bigquery.SchemaField("track_id",     "STRING",    mode="REQUIRED"),

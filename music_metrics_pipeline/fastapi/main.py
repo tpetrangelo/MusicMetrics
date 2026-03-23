@@ -4,7 +4,7 @@ from datetime import datetime, UTC, timezone
 
 from app.config import AWS_S3_BUCKET, AWS_S3_PLAYS_SOURCE
 from app.utils.s3_keys import build_raw_key
-from app.utils.s3_io import upload_parquet_to_s3  
+from app.utils.s3_io import write_json_to_s3
 from app.models import Item
 
 from mangum import Mangum # type: ignore
@@ -33,7 +33,7 @@ def write_to_s3(item: Item, source: str):
     ts = datetime.now(timezone.utc)
     plays_key = build_raw_key(AWS_SOURCE, ts, ext="json", play_source = source)
 
-    upload_parquet_to_s3(
+    write_json_to_s3(
         bucket=BUCKET,
         key=plays_key,
         data=item,
