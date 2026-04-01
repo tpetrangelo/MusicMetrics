@@ -1,5 +1,7 @@
 # MusicMetrics
 
+<img width="1239" height="840" alt="MusicMetrics" src="https://github.com/user-attachments/assets/9ebfadfe-7112-484e-a31e-0255dd53cd2b" />
+
 A personal music analytics pipeline that captures Apple Music listening history enriched with GPS location and real-time weather data. Every play event — track, artist, album, coordinates, and atmospheric conditions — is ingested, stored, transformed, and made available for analysis.
 
 Link to MusicMetrics dashboard [MusicMetrics](https://musicmetrics-i6fxmgvgvbxwf4bxl3fspn.streamlit.app/).
