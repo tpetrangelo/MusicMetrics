@@ -305,3 +305,7 @@ MusicMetrics/
   setup.py
   deploy.sh
 ```
+---
+
+### What's Next
+Currently adding multi-user support with per-user S3 partitioning, BigQuery RLS, and parameterized Airflow DAGs
